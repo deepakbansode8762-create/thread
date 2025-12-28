@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Thread Program - Runnable Interface & Multi-threading</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            overflow-x: hidden;
+            color: #333;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .slide {
+            width: 90%;
+            max-width: 1400px;
+            min-height: 85vh;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 25px;
+            padding: 50px 60px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+            display: none;
+            position: absolute;
+            opacity: 0;
+            transform: translateX(150px) scale(0.95);
+            transition: all 0.9s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            z-index: 10;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(30, 60, 114, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(126, 34, 206, 0.6);
+            }
+        }
+
+        h1 {
+            font-size: 3.8em;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease-out;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 2.8em;
+            background: linear-gradient(135deg, #1e3c72 0%, #7e22ce 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 30px 0 25px 0;
+            animation: fadeInUp 1s ease-out 0.2s backwards;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 2em;
+            color: #2a5298;
+            margin: 25px 0 15px 0;
+            animation: fadeInUp 1s ease-out 0.4s backwards;
+            font-weight: 600;
+        }
+
+        .content {
+            font-size: 1.25em;
+            line-height: 1.9;
+            color: #444;
+            animation: fadeInUp 1s ease-out 0.6s backwards;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 30px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 1em;
+            overflow-x: auto;
+            margin: 25px 0;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease-out 0.8s backwards, glow 3s ease-in-out infinite;
+            position: relative;
+            border-left: 4px solid #7e22ce;
+        }
+
+        .code-block::before {
+            content: 'JAVA';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.7em;
+            opacity: 0.4;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .code-block .keyword {
+            color: #569cd6;
+        }
+
+        .code-block .string {
+            color: #ce9178;
+        }
+
+        .code-block .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .code-block .method {
+            color: #dcdcaa;
+        }
+
+        .code-block .number {
+            color: #b5cea8;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            padding: 18px 20px;
+            margin: 12px 0;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.08) 0%, rgba(126, 34, 206, 0.08) 100%);
+            border-left: 5px solid #2a5298;
+            border-radius: 10px;
+            animation: slideInLeft 0.6s ease-out backwards;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .feature-list li:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left-color: #7e22ce;
+        }
+
+        .feature-list li:nth-child(1) { animation-delay: 0.1s; }
+        .feature-list li:nth-child(2) { animation-delay: 0.2s; }
+        .feature-list li:nth-child(3) { animation-delay: 0.3s; }
+        .feature-list li:nth-child(4) { animation-delay: 0.4s; }
+        .feature-list li:nth-child(5) { animation-delay: 0.5s; }
+        .feature-list li:nth-child(6) { animation-delay: 0.6s; }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .btn {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .slide-indicator {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .indicator.active {
+            background: white;
+            transform: scale(1.4);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(255, 235, 59, 0.4) 0%, rgba(255, 235, 59, 0.4) 100%);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .visual-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .shape-box {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.1) 0%, rgba(126, 34, 206, 0.1) 100%);
+            border-radius: 15px;
+            border: 3px solid #2a5298;
+            min-width: 250px;
+            animation: fadeInUp 1s ease-out backwards;
+            transition: all 0.3s ease;
+        }
+
+        .shape-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-color: #7e22ce;
+        }
+
+        .circle-visual {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .triangle-visual {
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-bottom: 104px solid #7e22ce;
+            margin: 0 auto 15px;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 25px;
+            border-radius: 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 1.1em;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-left: 4px solid #0f0;
+        }
+
+        .formula-box {
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.1) 0%, rgba(126, 34, 206, 0.1) 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid #7e22ce;
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .icon {
+            font-size: 2em;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 30px;
+                width: 95%;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+
+            h2 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                font-size: 1.1em;
+            }
+
+            .code-block {
+                font-size: 0.85em;
+                padding: 20px;
+            }
+
+            .visual-diagram {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="logo">⚡</div>
+            <h1>Java Thread Program</h1>
+            <h2 style="font-size: 2.2em; margin-top: 10px;">Runnable Interface & Multi-threading</h2>
+            <div style="text-align: center; margin-top: 50px; font-size: 1.3em; color: #666;">
+                <p><span class="highlight">ThreadMain.java</span></p>
+                <p style="margin-top: 20px;">Creating Threads using Runnable Interface with Thread.sleep()</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: Problem Statement -->
+        <div class="slide">
+            <h2><span class="icon">📋</span>Problem Statement</h2>
+            <div class="content">
+                <p style="margin-bottom: 25px; font-size: 1.3em;">
+                    Write a <span class="highlight">JAVA program</span> to illustrate creation of threads using the <code>Runnable</code> interface.
+                </p>
+                <ul class="feature-list">
+                    <li>🧵 Create a class that <strong>implements Runnable</strong> interface</li>
+                    <li>⏸️ Use <strong>start()</strong> method to start each newly created thread</li>
+                    <li>💤 Inside the <strong>run()</strong> method, include <code>sleep()</code> to suspend the thread for 500 milliseconds</li>
+                    <li>📝 Handle <strong>InterruptedException</strong> in try-catch block</li>
+                    <li>🚀 Create multiple threads (5 threads) and demonstrate concurrent execution</li>
+                    <li>💾 Save the filename as: <strong>ThreadMain.java</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Runnable Interface Concept -->
+        <div class="slide">
+            <h2><span class="icon">🎯</span>Runnable Interface</h2>
+            <div class="content">
+                <p style="margin-bottom: 25px;">
+                    The <span class="highlight">Runnable</span> interface should be implemented by any class whose instances are intended to be executed by a thread.
+                </p>
+                <ul class="feature-list">
+                    <li>✅ Functional interface with a single method <code>run()</code></li>
+                    <li>✅ Preferred way to create threads (more flexible)</li>
+                    <li>✅ Allows class to extend another class while implementing Runnable</li>
+                    <li>✅ Better object-oriented design (implements vs extends)</li>
+                </ul>
+                <div class="code-block">
+<span class="keyword">@FunctionalInterface</span><br>
+<span class="keyword">public interface</span> <span class="method">Runnable</span> {<br>
+    <span class="comment">// Must be implemented by classes that want to run in a thread</span><br>
+    <span class="keyword">public abstract void</span> <span class="method">run</span>();<br>
+}
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: MyRunnable Class Implementation -->
+        <div class="slide">
+            <h2><span class="icon">🧵</span>MyRunnable Class Implementation</h2>
+            <div class="content">
+                <div class="code-block">
+<span class="keyword">class</span> <span class="method">MyRunnable</span> <span class="keyword">implements</span> <span class="method">Runnable</span> {<br>
+    <span class="keyword">@Override</span><br>
+    <span class="keyword">public void</span> <span class="method">run</span>() {<br>
+        <span class="keyword">try</span> {<br>
+            <span class="comment">// Print thread information</span><br>
+            System.<span class="keyword">out</span>.<span class="method">println</span>(<span class="string">"Thread " +</span> Thread.<span class="method">currentThread</span>().<span class="method">getId</span>() + <span class="string">" is running."</span>);<br>
+            <br>
+            <span class="comment">// Suspend thread for 500 milliseconds</span><br>
+            Thread.<span class="method">sleep</span>(<span class="number">500</span>);<br>
+        }<br>
+        <span class="keyword">catch</span> (InterruptedException e) {<br>
+            System.<span class="keyword">out</span>.<span class="method">println</span>(<span class="string">"Thread interrupted: " +</span> e.<span class="method">getMessage</span>());<br>
+        }<br>
+    }<br>
+}
+                </div>
+                <div class="formula-box">
+                    <strong>Thread.sleep(500)</strong> suspends the thread for 500 milliseconds<br>
+                    <strong>Thread.currentThread().getId()</strong> returns the unique thread ID
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: ThreadMain Class Implementation -->
+        <div class="slide">
+            <h2><span class="icon">🚀</span>ThreadMain Class Implementation</h2>
+            <div class="content">
+                <div class="code-block">
+<span class="keyword">public class</span> <span class="method">ThreadMain</span> {<br>
+    <span class="keyword">public static void</span> <span class="method">main</span>(<span class="keyword">String</span>[] args) {<br>
+        <span class="keyword">int</span> numThreads = <span class="number">5</span>;<br>
+        <br>
+        <span class="comment">// Create and start 5 threads</span><br>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i < numThreads; i++) {<br>
+            <span class="comment">// Create Thread object with MyRunnable instance</span><br>
+            <span class="method">Thread</span> thread = <span class="keyword">new</span> <span class="method">Thread</span>(<span class="keyword">new</span> <span class="method">MyRunnable</span>());<br>
+            <br>
+            <span class="comment">// Start each thread (start() method calls run())</span><br>
+            thread.<span class="method">start</span>();<br>
+        }<br>
+    }<br>
+}
+                </div>
+                <div class="formula-box">
+                    <strong>new Thread(new MyRunnable())</strong> creates a new thread<br>
+                    <strong>thread.start()</strong> starts the thread and calls the run() method
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Complete Program Code -->
+        <div class="slide">
+            <h2><span class="icon">💻</span>Complete Program Code</h2>
+            <div class="content">
+                <div class="code-block">
+<span class="keyword">class</span> <span class="method">MyRunnable</span> <span class="keyword">implements</span> <span class="method">Runnable</span> {<br>
+    <span class="keyword">@Override</span><br>
+    <span class="keyword">public void</span> <span class="method">run</span>() {<br>
+        <span class="keyword">try</span> {<br>
+            System.<span class="keyword">out</span>.<span class="method">println</span>(<span class="string">"Thread " +</span> Thread.<span class="method">currentThread</span>().<span class="method">getId</span>() + <span class="string">" is running."</span>);<br>
+            Thread.<span class="method">sleep</span>(<span class="number">500</span>);<br>
+        }<br>
+        <span class="keyword">catch</span> (InterruptedException e) {<br>
+            System.<span class="keyword">out</span>.<span class="method">println</span>(<span class="string">"Thread interrupted: " +</span> e.<span class="method">getMessage</span>());<br>
+        }<br>
+    }<br>
+}<br>
+<br>
+<span class="keyword">public class</span> <span class="method">ThreadMain</span> {<br>
+    <span class="keyword">public static void</span> <span class="method">main</span>(<span class="keyword">String</span>[] args) {<br>
+        <span class="keyword">int</span> numThreads = <span class="number">5</span>;<br>
+        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i < numThreads; i++) {<br>
+            <span class="method">Thread</span> thread = <span class="keyword">new</span> <span class="method">Thread</span>(<span class="keyword">new</span> <span class="method">MyRunnable</span>());<br>
+            thread.<span class="method">start</span>();<br>
+        }<br>
+    }<br>
+}
+                </div>
+                <div style="margin-top: 20px;">
+                    <p><strong>Compile:</strong> <code>javac ThreadMain.java</code></p>
+                    <p><strong>Run:</strong> <code>java ThreadMain</code></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Program Output -->
+        <div class="slide">
+            <h2><span class="icon">📊</span>Program Output</h2>
+            <div class="content">
+                <h3>Execution Result:</h3>
+                <div class="output-box">
+Thread 10 is running.
+Thread 12 is running.
+Thread 14 is running.
+Thread 13 is running.
+Thread 11 is running.
+                </div>
+                <div style="margin-top: 30px;">
+                    <h3>Important Observations:</h3>
+                    <ul class="feature-list">
+                        <li><strong>Non-deterministic Order:</strong> Threads execute concurrently and order may vary</li>
+                        <li><strong>Thread IDs:</strong> Each thread has a unique ID (10, 11, 12, 13, 14)</li>
+                        <li><strong>Concurrent Execution:</strong> All 5 threads run simultaneously</li>
+                        <li><strong>Sleep Duration:</strong> Each thread sleeps for 500ms before completion</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Thread Lifecycle -->
+        <div class="slide">
+            <h2><span class="icon">🔄</span>Thread Lifecycle</h2>
+            <div class="content">
+                <div class="visual-diagram">
+                    <div class="shape-box">
+                        <h3>NEW</h3>
+                        <p>Thread created but not started</p>
+                    </div>
+                    <div class="shape-box">
+                        <h3>RUNNABLE</h3>
+                        <p>Thread.start() called, ready to run</p>
+                    </div>
+                    <div class="shape-box">
+                        <h3>RUNNING</h3>
+                        <p>Thread is executing run() method</p>
+                    </div>
+                    <div class="shape-box">
+                        <h3>BLOCKED/WAITING</h3>
+                        <p>Thread.sleep() suspends execution</p>
+                    </div>
+                    <div class="shape-box">
+                        <h3>TERMINATED</h3>
+                        <p>Thread completes execution</p>
+                    </div>
+                </div>
+                <div style="margin-top: 30px;">
+                    <p><strong>Key Points:</strong></p>
+                    <ul class="feature-list">
+                        <li>Thread state changes automatically during execution</li>
+                        <li><code>sleep(500)</code> causes thread to enter WAITING state</li>
+                        <li>After sleep completes, thread continues and terminates</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Key Concepts Demonstrated -->
+        <div class="slide">
+            <h2><span class="icon">🔑</span>Key Threading Concepts</h2>
+            <div class="content">
+                <ul class="feature-list">
+                    <li><strong>🧵 Multi-threading:</strong> Multiple threads execute concurrently</li>
+                    <li><strong>🎯 Runnable Interface:</strong> Functional interface for thread execution</li>
+                    <li><strong>🚀 Thread.start():</strong> Starts thread and calls run() method</li>
+                    <li><strong>💤 Thread.sleep():</strong> Suspends thread execution for specified milliseconds</li>
+                    <li><strong>⚠️ Exception Handling:</strong> InterruptedException must be caught</li>
+                    <li><strong>🔄 Concurrent Execution:</strong> Threads run independently and simultaneously</li>
+                    <li><strong>🆔 Thread ID:</strong> Unique identifier for each thread instance</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 10: Real-World Applications -->
+        <div class="slide">
+            <h2><span class="icon">🌍</span>Real-World Applications</h2>
+            <div class="content">
+                <ul class="feature-list">
+                    <li>🌐 <strong>Web Servers:</strong> Handle multiple client requests simultaneously</li>
+                    <li>📱 <strong>Mobile Apps:</strong> Background tasks while UI remains responsive</li>
+                    <li>🎮 <strong>Game Development:</strong> Parallel processing for graphics and AI</li>
+                    <li>💾 <strong>File Processing:</strong> Read/write multiple files concurrently</li>
+                    <li>🔄 <strong>Data Processing:</strong> Parallel computation for large datasets</li>
+                    <li>📡 <strong>Network Programming:</strong> Concurrent connection handling</li>
+                    <li>⏱️ <strong>Scheduled Tasks:</strong> Background jobs and timers</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 11: Runnable vs Thread Extension -->
+        <div class="slide">
+            <h2><span class="icon">⚖️</span>Runnable vs Thread Extension</h2>
+            <div class="content">
+                <p style="margin-bottom: 20px;">Two ways to create threads in Java:</p>
+                <div class="code-block">
+<span class="comment">// Method 1: Implementing Runnable (Preferred)</span><br>
+<span class="keyword">class</span> <span class="method">MyRunnable</span> <span class="keyword">implements</span> <span class="method">Runnable</span> {<br>
+    <span class="keyword">public void</span> <span class="method">run</span>() { ... }<br>
+}<br>
+<span class="method">Thread</span> t = <span class="keyword">new</span> <span class="method">Thread</span>(<span class="keyword">new</span> <span class="method">MyRunnable</span>());<br>
+<br>
+<span class="comment">// Method 2: Extending Thread (Less flexible)</span><br>
+<span class="keyword">class</span> <span class="method">MyThread</span> <span class="keyword">extends</span> <span class="method">Thread</span> {<br>
+    <span class="keyword">public void</span> <span class="method">run</span>() { ... }<br>
+}<br>
+<span class="method">MyThread</span> t = <span class="keyword">new</span> <span class="method">MyThread</span>();
+                </div>
+                <p style="margin-top: 20px;"><strong>Why Runnable is preferred:</strong> Allows class to extend another class, better OOP design, more flexible!</p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Benefits of Multi-threading -->
+        <div class="slide">
+            <h2><span class="icon">✨</span>Benefits of Multi-threading</h2>
+            <div class="content">
+                <ul class="feature-list">
+                    <li>⚡ <strong>Performance:</strong> Utilize multiple CPU cores for parallel processing</li>
+                    <li>🎯 <strong>Responsiveness:</strong> Keep UI responsive while processing in background</li>
+                    <li>🔄 <strong>Concurrency:</strong> Handle multiple tasks simultaneously</li>
+                    <li>🎨 <strong>Flexibility:</strong> Runnable interface allows better OOP design</li>
+                    <li>📊 <strong>Scalability:</strong> Create as many threads as needed</li>
+                    <li>🔧 <strong>Resource Sharing:</strong> Threads share the same memory space</li>
+                    <li>⚙️ <strong>Asynchronous Operations:</strong> Execute tasks independently</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 13: Thank You -->
+        <div class="slide">
+            <div style="text-align: center; margin-top: 100px;">
+                <div class="logo" style="font-size: 6em;">🎓</div>
+                <h1 style="font-size: 4.5em; margin-top: 30px;">Thank You!</h1>
+                <div class="content" style="font-size: 1.5em; margin-top: 50px; color: #666;">
+                    <p>Java Thread Program</p>
+                    <p style="margin-top: 20px; font-size: 0.9em;">Runnable Interface & Multi-threading</p>
+                    <p style="margin-top: 40px; font-size: 0.7em; color: #999;">Questions & Discussion</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-indicator">
+        <div class="indicator active" onclick="goToSlide(0)"></div>
+        <div class="indicator" onclick="goToSlide(1)"></div>
+        <div class="indicator" onclick="goToSlide(2)"></div>
+        <div class="indicator" onclick="goToSlide(3)"></div>
+        <div class="indicator" onclick="goToSlide(4)"></div>
+        <div class="indicator" onclick="goToSlide(5)"></div>
+        <div class="indicator" onclick="goToSlide(6)"></div>
+        <div class="indicator" onclick="goToSlide(7)"></div>
+        <div class="indicator" onclick="goToSlide(8)"></div>
+        <div class="indicator" onclick="goToSlide(9)"></div>
+        <div class="indicator" onclick="goToSlide(10)"></div>
+        <div class="indicator" onclick="goToSlide(11)"></div>
+        <div class="indicator" onclick="goToSlide(12)"></div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="previousSlide()">← Previous</button>
+        <button class="btn" onclick="nextSlide()">Next →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const indicators = document.querySelectorAll('.indicator');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            indicators[currentSlide].classList.remove('active');
+            
+            currentSlide = (n + totalSlides) % totalSlides;
+            
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function previousSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function goToSlide(n) {
+            showSlide(n);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                previousSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                goToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                goToSlide(totalSlides - 1);
+            }
+        });
+
+        // Touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + 50) {
+                previousSlide();
+            }
+        }
+
+        // Auto-scroll to top when slide changes
+        const presentation = document.querySelector('.presentation');
+        function scrollToTop() {
+            presentation.scrollTop = 0;
+        }
+
+        const originalShowSlide = showSlide;
+        showSlide = function(n) {
+            originalShowSlide(n);
+            setTimeout(scrollToTop, 100);
+        };
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
